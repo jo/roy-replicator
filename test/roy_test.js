@@ -22,15 +22,42 @@ var roy = require('../lib/roy.js');
     test.ifError(value)
 */
 
-exports['awesome'] = {
+exports['replicate'] = {
   setUp: function(done) {
-    // setup here
-    done();
+    var server = 'http://localhost:5984';
+    var source = 'roy-source';
+    var target = 'roy-target';
+    var nano = require('nano')(server);
+    this.source = nano.db.use(source);
+    this.target = nano.db.use(target);
+
+    var docs = [];
+    for (var i = 0; i < 100; i++) {
+      docs.push({
+        _id: i.toString(),
+        i: i
+      });
+    }
+
+    nano.db.destroy(source, function() {
+      nano.db.destroy(target, function() {
+        nano.db.create(source, function() {
+          nano.db.create(target, function() {
+            nano.db.use(source).bulk({ docs: docs }, function() {
+              done();
+            });
+          });
+        });
+      });
+    });
   },
-  'no args': function(test) {
-    test.expect(1);
-    // tests here
-    test.equal(roy.awesome(), 'awesome', 'should be awesome.');
-    test.done();
+  'basic pull replication': function(test) {
+    test.expect(2);
+
+    roy.replicate({ source: this.source, target: this.target }, function(err, resp) {
+      test.ok(!err, 'no error should have been occured');
+      test.ok(resp.ok, 'resp should be ok');
+      test.done();
+    });
   },
 };
