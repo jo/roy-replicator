@@ -1,6 +1,6 @@
 {
   "name": "roy",
-  "description": "Replicate like a king.",
+  "description": "Node implementation of CouchDB replicator, based on nano. For educational purposes.",
   "version": "0.1.0",
   "homepage": "https://github.com/jo/roy",
   "author": {
@@ -21,7 +21,7 @@
       "url": "https://github.com/jo/roy/blob/master/LICENSE-MIT"
     }
   ],
-  "main": "lib/roy",
+  "main": "roy",
   "engines": {
     "node": ">= 0.8.0"
   },

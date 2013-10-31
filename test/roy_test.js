@@ -1,6 +1,6 @@
 'use strict';
 
-var roy = require('../lib/roy.js');
+var roy = require('../roy.js');
 
 /*
   ======== A Handy Little Nodeunit Reference ========
