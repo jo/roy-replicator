@@ -2,25 +2,23 @@
 
 Replicate like a king.
 
+Node implementation of CouchDB replicator, based on nano.
+
+Just for educational purposes.
+
 ## Getting Started
 Install the module with: `npm install roy`
 
 ```javascript
 var roy = require('roy');
-roy.awesome(); // "awesome"
+var nano = require('nano')('http://localhost:5984');
+roy.replicate({
+  source: nano.db.use('my-source'),
+  target: nano.db.use('my-target')
+}, function(err, resp) {
+  console.log('WOOT!');
+});
 ```
-
-## Documentation
-_(Coming soon)_
-
-## Examples
-_(Coming soon)_
-
-## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
-
-## Release History
-_(Nothing yet)_
 
 ## License
 Copyright (c) 2013 Johannes J. Schmidt  
