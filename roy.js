@@ -16,11 +16,9 @@ var crypto = require('crypto');
 var nano = require('nano');
 var async= require('async');
 
-var BATCH_SIZE = 1000;
-
-// TODO: support replication options: filter and continuous mode
+// TODO: support continuous replication
 exports.replicate = function replicate(options, callback) {
-  options.batch_size = options.batch_size || BATCH_SIZE;
+  options.batch_size = options.batch_size || 1000;
 
   // Get a unique identifier from the source database (which may just be its URL).
   // Use this identifier to generate the doc ID of a special (_local,
@@ -53,10 +51,20 @@ exports.replicate = function replicate(options, callback) {
   // running indefinitely to process changes as they occur. Filtered replication
   // will specify the name of a filter function in this URL request.
   function getChanges(checkpointDoc, callback) {
-    options.source.changes({
+    var changesOptions = {
       since: checkpointDoc.checkpoint,
       limit: options.batch_size
-    }, callback);
+    };
+    if (options.doc_ids) {
+      changesOptions.doc_ids = options.doc_ids;
+    }
+    if (options.filter) {
+      changesOptions.filter = options.filter;
+    }
+    if (options.query_params) {
+      changesOptions.query_params = options.query_params;
+    }
+    options.source.changes(changesOptions, callback);
   }
 
   // Collect a group of document/revision ID pairs from the _changes feed and
