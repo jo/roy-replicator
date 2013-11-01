@@ -27,12 +27,12 @@ exports['replicate'] = {
     var server = 'http://localhost:5984';
     var source = 'roy-source';
     var target = 'roy-target';
-    var nano = require('nano')(server);
+    var nano = this.nano = require('nano')(server);
     this.source = nano.db.use(source);
     this.target = nano.db.use(target);
 
     var docs = [];
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 10; i++) {
       docs.push({
         _id: i.toString(),
         i: i
@@ -52,12 +52,20 @@ exports['replicate'] = {
     });
   },
   'basic pull replication': function(test) {
-    test.expect(2);
+    test.expect(3);
+    var source = this.source;
+    var target = this.target;
+    var nano = this.nano;
 
     roy.replicate({ source: this.source, target: this.target }, function(err, resp) {
       test.ok(!err, 'no error should have been occured');
       test.ok(resp.ok, 'resp should be ok');
-      test.done();
+      nano.db.get(source.config.db, function(err, sourceInfo) {
+        nano.db.get(target.config.db, function(err, targetInfo) {
+          test.equal(sourceInfo.doc_count, targetInfo.doc_count, 'source and target have the same docs count');
+          test.done();
+        });
+      });
     });
   },
 };
