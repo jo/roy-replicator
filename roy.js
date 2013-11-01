@@ -197,7 +197,7 @@ exports.replicate = function replicate(options, callback) {
         getRevisions(missingRevs, function(err, docs) {
           saveRevisions(docs, function(err, result) {
             storeCheckpoint(changes, checkpointDoc, function(err, resp) {
-              if (changes.results.length === BATCH_SIZE) {
+              if (changes.results.length === options.batch_size) {
                 return replicate(options, callback);
               }
 
