@@ -20,6 +20,8 @@ var BATCH_SIZE = 1000;
 
 // TODO: support replication options: filter and continuous mode
 exports.replicate = function replicate(options, callback) {
+  options.batch_size = options.batch_size || BATCH_SIZE;
+
   // Get a unique identifier from the source database (which may just be its URL).
   // Use this identifier to generate the doc ID of a special (_local,
   // non-replicated) document of the target database, to look up a stored value:
@@ -53,7 +55,7 @@ exports.replicate = function replicate(options, callback) {
   function getChanges(checkpointDoc, callback) {
     options.source.changes({
       since: checkpointDoc.checkpoint,
-      limit: BATCH_SIZE
+      limit: options.batch_size
     }, callback);
   }
 
