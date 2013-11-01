@@ -1,4 +1,4 @@
-# Roy [![Build Status](https://secure.travis-ci.org/jo/roy.png?branch=master)](http://travis-ci.org/jo/roy)
+# Roy
 
 Node implementation of CouchDB replicator, based on nano.
 
