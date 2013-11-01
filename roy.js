@@ -16,10 +16,10 @@ var crypto = require('crypto');
 var nano = require('nano');
 var async= require('async');
 
+var BATCH_SIZE = 1000;
 
-// TODO:
-// * do it in batches
-exports.replicate = function(options, callback) {
+// TODO: support replication options: filter and continuous mode
+exports.replicate = function replicate(options, callback) {
   // Get a unique identifier from the source database (which may just be its URL).
   // Use this identifier to generate the doc ID of a special (_local,
   // non-replicated) document of the target database, to look up a stored value:
@@ -52,7 +52,8 @@ exports.replicate = function(options, callback) {
   // will specify the name of a filter function in this URL request.
   function getChanges(checkpointDoc, callback) {
     options.source.changes({
-      since: checkpointDoc.checkpoint
+      since: checkpointDoc.checkpoint,
+      limit: BATCH_SIZE
     }, callback);
   }
 
@@ -110,6 +111,8 @@ exports.replicate = function(options, callback) {
       return missing.length > 1 || parseInt(missing[0]) > 1;
     });
     
+    // TODO: get generation one revisions and the other revisions should be done
+    // paralell.
     getGenerationOneRevisions(generationOneIds, function(err, generationOneDocs) {
       async.map(otherIds, function(id, next) {
         var revs = missingRevs[id].missing;
@@ -163,8 +166,7 @@ exports.replicate = function(options, callback) {
   // JSON property to preserve their revision IDs.
   function saveRevisions(docs, callback) {
     options.target.bulk({
-      docs: docs
-    }, {
+      docs: docs,
       new_edits: false
     }, callback);
   }
@@ -185,6 +187,10 @@ exports.replicate = function(options, callback) {
         getRevisions(missingRevs, function(err, docs) {
           saveRevisions(docs, function(err, result) {
             storeCheckpoint(changes, checkpointDoc, function(err, resp) {
+              if (changes.results.length === BATCH_SIZE) {
+                return replicate(options, callback);
+              }
+
               callback(null, {
                 ok: true
               });

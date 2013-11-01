@@ -32,7 +32,7 @@ exports['replicate'] = {
     this.target = nano.db.use(target);
 
     var docs = [];
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 100000; i++) {
       docs.push({
         _id: i.toString(),
         i: i
