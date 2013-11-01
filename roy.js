@@ -16,9 +16,15 @@ var crypto = require('crypto');
 var nano = require('nano');
 var async= require('async');
 
-// TODO: support continuous replication
 exports.replicate = function replicate(options, callback) {
   options.batch_size = options.batch_size || 1000;
+
+  // Reference to the changes feed, to allow to cancel in continuous mode
+  var changes;
+
+  if (!callback) {
+    callback = function() {};
+  }
 
   // Get a unique identifier from the source database (which may just be its URL).
   // Use this identifier to generate the doc ID of a special (_local,
@@ -64,7 +70,10 @@ exports.replicate = function replicate(options, callback) {
     if (options.query_params) {
       changesOptions.query_params = options.query_params;
     }
-    options.source.changes(changesOptions, callback);
+    if (options.firstRunComplete) {
+      changesOptions.feed = 'longpoll';
+    }
+    changes = options.source.changes(changesOptions, callback);
   }
 
   // Collect a group of document/revision ID pairs from the _changes feed and
@@ -114,11 +123,11 @@ exports.replicate = function replicate(options, callback) {
     var ids = Object.keys(missingRevs);
     var generationOneIds = ids.filter(function(id) {
       var missing = missingRevs[id].missing;
-      return missing.length === 1 && parseInt(missing[0]) === 1;
+      return missing.length === 1 && parseInt(missing[0], 10) === 1;
     });
     var otherIds = ids.filter(function(id) {
       var missing = missingRevs[id].missing;
-      return missing.length > 1 || parseInt(missing[0]) > 1;
+      return missing.length > 1 || parseInt(missing[0], 10) > 1;
     });
     
     // TODO: get generation one revisions and the other revisions should be done
@@ -192,12 +201,38 @@ exports.replicate = function replicate(options, callback) {
   }
 
   getCheckpointDoc(function(err, checkpointDoc) {
+    if (err) {
+     return callback(err);
+    }
     getChanges(checkpointDoc, function(err, changes) {
+      if (err) {
+       return callback(err);
+      }
       getRevsDiff(changes, function(err, missingRevs) {
+        if (err) {
+         return callback(err);
+        }
         getRevisions(missingRevs, function(err, docs) {
-          saveRevisions(docs, function(err, result) {
-            storeCheckpoint(changes, checkpointDoc, function(err, resp) {
+          if (err) {
+           return callback(err);
+          }
+          saveRevisions(docs, function(err) {
+            if (err) {
+             return callback(err);
+            }
+            storeCheckpoint(changes, checkpointDoc, function(err) {
+              if (err) {
+               return callback(err);
+              }
               if (changes.results.length === options.batch_size) {
+                return replicate(options, callback);
+              }
+
+              if (options.continuous) {
+                options.firstRunComplete = true;
+                callback(null, {
+                  ok: true
+                });
                 return replicate(options, callback);
               }
 
@@ -210,4 +245,10 @@ exports.replicate = function replicate(options, callback) {
       });
     });
   });
+
+  return {
+    cancel: function() {
+      changes.abort();
+    }
+  };
 };

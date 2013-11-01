@@ -14,8 +14,8 @@ module.exports = function(grunt) {
       gruntfile: {
         src: 'Gruntfile.js'
       },
-      lib: {
-        src: ['lib/**/*.js']
+      roy: {
+        src: ['roy.js']
       },
       test: {
         src: ['test/**/*.js']
