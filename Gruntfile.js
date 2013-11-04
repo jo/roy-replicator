@@ -18,7 +18,7 @@ module.exports = function(grunt) {
         src: ['roy.js']
       },
       test: {
-        src: ['test/**/*.js']
+        src: ['test/**/*_test.js']
       },
     },
     watch: {

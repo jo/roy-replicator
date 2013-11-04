@@ -19,6 +19,11 @@ var async= require('async');
 exports.replicate = function replicate(options, callback) {
   options.batch_size = options.batch_size || 1000;
 
+  var result = {
+    docs_read: 0,
+    docs_written: 0
+  };
+
   // Reference to the changes feed, to allow to cancel in continuous mode
   var changes;
 
@@ -166,7 +171,11 @@ exports.replicate = function replicate(options, callback) {
 
       // fetch attachments
       async.map(docs, function(doc, next) {
-        if (!doc._attachments || !Object.keys(doc._attachments).length) {
+        var needsFetching = doc._deleted ||
+          (doc._attachments && Object.keys(doc._attachments).length > 0) ||
+          parseInt(doc._rev, 10) > 1;
+
+        if (!needsFetching) {
           return next(null, doc);
         }
 
@@ -204,22 +213,29 @@ exports.replicate = function replicate(options, callback) {
     if (err) {
      return callback(err);
     }
+
     getChanges(checkpointDoc, function(err, changes) {
       if (err) {
        return callback(err);
       }
+
       getRevsDiff(changes, function(err, missingRevs) {
         if (err) {
          return callback(err);
         }
+
         getRevisions(missingRevs, function(err, docs) {
           if (err) {
            return callback(err);
           }
+          result.docs_read += docs.length;
+
           saveRevisions(docs, function(err) {
             if (err) {
              return callback(err);
             }
+            result.docs_written += docs.length;
+
             storeCheckpoint(changes, checkpointDoc, function(err) {
               if (err) {
                return callback(err);
@@ -230,15 +246,11 @@ exports.replicate = function replicate(options, callback) {
 
               if (options.continuous) {
                 options.firstRunComplete = true;
-                callback(null, {
-                  ok: true
-                });
                 return replicate(options, callback);
               }
 
-              callback(null, {
-                ok: true
-              });
+              result.ok = true;
+              callback(null, result);
             });
           });
         });
