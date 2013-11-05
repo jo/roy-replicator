@@ -28,7 +28,7 @@ exports.checkpoint = {
   },
 
   'checkpoint with many updates': function(test) {
-    test.expect(3);
+    test.expect(4);
 
     var source = this.source;
     var target = this.target;
@@ -45,8 +45,11 @@ exports.checkpoint = {
           source.insert(doc, function() {
             roy.replicate({ source: source, target: target }, function(err, resp) {
               test.ok(resp.ok, 'replication was ok');
-              test.equal(resp.docs_written, 1, 'correct # docs written');
-              test.done();
+              test.equal(resp.docs_written, 3, 'correct # docs written');
+              target.list(function(err, resp) {
+                test.equal(resp.rows.length, 1, 'correct # docs exist');
+                test.done();
+              });
             });
           });
         });

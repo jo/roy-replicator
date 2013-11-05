@@ -67,7 +67,10 @@ exports.replicate = function replicate(options, callback) {
       limit: options.batch_size
     };
     if (options.doc_ids) {
-      changesOptions.doc_ids = options.doc_ids;
+      changesOptions.filter = '_doc_ids';
+      changesOptions.doc_ids = typeof options.doc_ids === 'string' ?
+        options.doc_ids :
+        JSON.stringify(options.doc_ids);
     }
     if (options.filter) {
       changesOptions.filter = options.filter;
@@ -130,6 +133,10 @@ exports.replicate = function replicate(options, callback) {
       var missing = missingRevs[id].missing;
       return missing.length === 1 && parseInt(missing[0], 10) === 1;
     });
+    var generationOneRevs = ids.reduce(function(memo, id) {
+      memo[id] = missingRevs[id].missing[0];
+      return memo;
+    }, {});
     var otherIds = ids.filter(function(id) {
       var missing = missingRevs[id].missing;
       return missing.length > 1 || parseInt(missing[0], 10) > 1;
@@ -137,7 +144,7 @@ exports.replicate = function replicate(options, callback) {
     
     // TODO: get generation one revisions and the other revisions should be done
     // paralell.
-    getGenerationOneRevisions(generationOneIds, function(err, generationOneDocs) {
+    getGenerationOneRevisions(generationOneIds, generationOneRevs, function(err, generationOneDocs) {
       async.map(otherIds, function(id, next) {
         var revs = missingRevs[id].missing;
         var knownRevs = [];
@@ -157,7 +164,7 @@ exports.replicate = function replicate(options, callback) {
     });
   }
 
-  function getGenerationOneRevisions(ids, callback) {
+  function getGenerationOneRevisions(ids, revs, callback) {
     if (!ids.length) {
       return callback(null, []);
     }
@@ -166,23 +173,23 @@ exports.replicate = function replicate(options, callback) {
       keys: ids
     }, {
       include_docs: true
-    }, function(err, docs) {
-      docs = docs.rows.map(function(row) { return row.doc; });
-
-      // fetch attachments
-      async.map(docs, function(doc, next) {
-        var needsFetching = doc._deleted ||
-          (doc._attachments && Object.keys(doc._attachments).length > 0) ||
-          parseInt(doc._rev, 10) > 1;
+    }, function(err, result) {
+      // fetch attachments, deleted docs and generation > 1 docs
+      async.map(result.rows, function(row, next) {
+        var needsFetching = row.value.deleted ||
+          (row.doc._attachments && Object.keys(row.doc._attachments).length > 0) ||
+          parseInt(row.doc._rev, 10) > 1;
 
         if (!needsFetching) {
-          return next(null, doc);
+          return next(null, row.doc);
         }
 
         // TODO: an optimisation would be to only fetch the attachments via
         // standalone attachments api and then encode them base64 and construct
         // the attachment stub
-        options.source.get(doc._id, {
+        options.source.get(row.id, {
+          rev: revs[row.id],
+          revs: true,
           attachments: true
         }, next);
       }, callback);
@@ -228,13 +235,23 @@ exports.replicate = function replicate(options, callback) {
           if (err) {
            return callback(err);
           }
-          result.docs_read += docs.length;
+
+          var docsCount = docs.reduce(function(sum, doc) {
+            if (doc._revisions) {
+              sum += doc._revisions.ids.length;
+            } else {
+              sum++;
+            }
+            return sum;
+          }, 0);
+          result.docs_read += docsCount;
 
           saveRevisions(docs, function(err) {
             if (err) {
              return callback(err);
             }
-            result.docs_written += docs.length;
+
+            result.docs_written += docsCount;
 
             storeCheckpoint(changes, checkpointDoc, function(err) {
               if (err) {
