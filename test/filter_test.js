@@ -7,7 +7,7 @@ exports.filter = {
   setUp: helper.setUp,
 
   'basic filter': function(test) {
-    test.expect(2);
+    test.expect(3);
 
     var source = this.source;
     var target = this.target;
@@ -25,6 +25,7 @@ exports.filter = {
           target: target,
           filter: 'myfilter/even'
         }, function(err, resp) {
+          test.ok(!err, 'no error should have been occured');
           test.ok(resp.ok, 'replication was ok');
           test.equal(resp.docs_written, 2, 'correct # of docs were written');
           test.done();

@@ -44,14 +44,37 @@ exports.replicate = function replicate(options, callback) {
       .update('/')
       .update(options.source.config.db)
       .digest("hex");
-    var id = '_local/' + encodeURIComponent(identifier);
 
-    options.target.get(id, function(err, doc) {
-      doc = doc || {
-        _id: id,
-        checkpoint: 0
-      };
-      callback(null, doc);
+    var doc = {
+      _id: '_local/' + identifier,
+      last_seq: 0
+    };
+
+    options.target.get(doc._id, function(err, targetDoc) {
+      if (err) {
+        return callback(null, doc);
+      }
+      options.source.get(doc._id, function(err, sourceDoc) {
+        if (err) {
+          return callback(null, doc);
+        }
+        if (targetDoc.last_seq !== sourceDoc.last_seq) {
+          return callback(null, doc);
+        }
+        callback(null, sourceDoc);
+      });
+    });
+  }
+
+  // After a group of revisions is stored, save a checkpoint: update the last
+  // source sequence ID value in the target database. It should be the latest
+  // sequence ID for which its revision and all prior to it have been added to
+  // the target. (Even if some revisions are rejected by a target validation
+  // handler, they still count as ‘added’ for this purpose.)
+  function storeCheckpoint(changes, checkpointDoc, callback) {
+    checkpointDoc.last_seq = changes.last_seq;
+    options.target.insert(checkpointDoc, checkpointDoc._id, function() {
+      options.source.insert(checkpointDoc, checkpointDoc._id, callback);
     });
   }
 
@@ -63,7 +86,7 @@ exports.replicate = function replicate(options, callback) {
   // will specify the name of a filter function in this URL request.
   function getChanges(checkpointDoc, callback) {
     var changesOptions = {
-      since: checkpointDoc.checkpoint,
+      since: checkpointDoc.last_seq,
       limit: options.batch_size
     };
     if (options.doc_ids) {
@@ -204,16 +227,6 @@ exports.replicate = function replicate(options, callback) {
       docs: docs,
       new_edits: false
     }, callback);
-  }
-
-  // After a group of revisions is stored, save a checkpoint: update the last
-  // source sequence ID value in the target database. It should be the latest
-  // sequence ID for which its revision and all prior to it have been added to
-  // the target. (Even if some revisions are rejected by a target validation
-  // handler, they still count as ‘added’ for this purpose.)
-  function storeCheckpoint(changes, checkpointDoc, callback) {
-    checkpointDoc.checkpoint = changes.last_seq;
-    options.target.insert(checkpointDoc, callback);
   }
 
   getCheckpointDoc(function(err, checkpointDoc) {

@@ -5,6 +5,8 @@ var couch = process.env.COUCH || 'http://localhost:5984';
 var nano = require('nano')(couch);
 var async = require('async');
 
+exports.db = nano.db;
+
 exports.createDocs = function(db, n, callback) {
   var docs = [];
   for (var i = 0; i < n; i++) {
@@ -26,9 +28,12 @@ exports.setUp = function(done) {
   this.target = db.use(targetName);
 
   async.each([sourceName, targetName], db.destroy, function() {
-    async.each([sourceName, targetName], db.create, function() {
-      done();
-    });
+    // removing this timeout cause flickering tests :(
+    setTimeout(function() {
+      async.each([sourceName, targetName], db.create, function() {
+        done();
+      });
+    }, 100);
   });
 };
 
