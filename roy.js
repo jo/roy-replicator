@@ -17,7 +17,7 @@ var nano = require('nano');
 var async= require('async');
 
 exports.replicate = function replicate(options, callback) {
-  options.batch_size = options.batch_size || 1000;
+  options.batch_size = options.batch_size || 100;
 
   var result = {
     docs_read: 0,
