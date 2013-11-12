@@ -1,7 +1,6 @@
 'use strict';
 
 var helper = require('./test_helper.js');
-var roy = require('../roy.js');
 
 function putAfter(db, doc, prevRev, callback){
   doc._revisions = {
@@ -14,14 +13,11 @@ function putAfter(db, doc, prevRev, callback){
   db.insert(doc, { new_edits: false }, callback);
 }
 
-exports.conflict = {
-  setUp: helper.setUp,
-
+exports.conflict = helper.test({
   'some conflicts': function(test) {
-    test.expect(4);
-
     var source = this.source;
     var target = this.target;
+    var roy = this.roy;
 
     var doc = {
       _id: "foo",
@@ -58,10 +54,9 @@ exports.conflict = {
   },
 
   'remote conflicts': function(test) {
-    test.expect(2);
-
     var source = this.source;
     var target = this.target;
+    var roy = this.roy;
 
     var doc = {
       _id: "test",
@@ -80,7 +75,7 @@ exports.conflict = {
             target.insert(doc, function(err, resp) {
               winningRev = resp.rev;
               roy.replicate({ source: source, target: target }, function() {
-                roy.replicate({ source: target, target: source }, function() {
+                helper.roy.replicate({ source: target, target: source }, function() {
                   target.get('test', { revs_info: true }, function(err, targetDoc) {
                     source.get('test', { revs_info: true }, function(err, localDoc) {
                       test.equal(localDoc._rev, winningRev, "Local chose correct winning revision");
@@ -123,7 +118,7 @@ exports.conflict = {
   //     source.insert(docs2[0], docs2[0]._id, function() {
   //       source.insert(docs2[1], docs2[1]._id, function(err, info) {
   //         var rev2 = info.rev;
-  //         roy.replicate({ source: source, target: target }, function() {
+  //         helper.roy.replicate({ source: source, target: target }, function() {
   //           // update remote once, local twice, then replicate from
   //           // remote to local so the remote losing conflict is later in the tree
   //           source.insert({ _id: "3", _rev: rev2, integer: 20 }, '3', function(err, resp) {
@@ -133,7 +128,7 @@ exports.conflict = {
   //               var rev4Doc = {_id: "3", _rev: rev2, integer: 100 };
   //               target.insert(rev4Doc, '3', function(err, resp) {
   //                 var remoterev = resp.rev;
-  //                 roy.replicate({ source: target, target: source }, function() {
+  //                 helper.roy.replicate({ source: target, target: source }, function() {
   //                   source.changes({
   //                     include_docs: true,
   //                     conflicts: true
@@ -185,7 +180,7 @@ exports.conflict = {
   //   }
   //   
   //   createConflicts(source, function() {
-  //     roy.replicate({ source: source, target: target }, function(err, result) {
+  //     helper.roy.replicate({ source: source, target: target }, function(err, result) {
   //       test.ok(result.ok, 'replication was ok');
   //       // in this situation, all the conflicting revisions should be read and
   //       // written to the target database (this is consistent with CouchDB)
@@ -195,4 +190,4 @@ exports.conflict = {
   //     });
   //   });
   // }
-};
+});

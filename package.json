@@ -37,6 +37,7 @@
   "keywords": [],
   "dependencies": {
     "nano": "~4.1.4",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "node-uuid": "~1.4.1"
   }
 }
