@@ -31,42 +31,65 @@ function getSourceInfo(options, callback) {
 function generateSessionId(options, callback) {
   var base = crypto.createHash('md5');
 
+  function getFilter(callback) {
+    if (!options.filter) {
+      return callback(null, null);
+    }
+
+    var ddocName = options.filter.split('/', 1)[0];
+
+    options.source.get('_design/' + ddocName, function(err, ddoc) {
+      if (err) {
+        return callback(err);
+      }
+      if (!ddoc.filters) {
+        return callback({ error: 'no filters found in ' + ddocName });
+      }
+      var filterName = options.filter.split('/', 2)[1];
+      if (!ddoc.filters[filterName]) {
+        return callback({ error: 'filter missing: ' + filterName });
+      }
+      callback(null, ddoc.filters[filterName]);
+    });
+  }
+
   base.update(exports.uuid);
   base.update(options.source.config.host + '/' + options.source.config.db);
   base.update(options.target.config.host + '/' + options.target.config.db);
 
-  if (options.filter) {
-    if (typeof options.filter === 'function') {
-      base.update(options.filter.toString());
-    } else {
-      //TODO: use filter code instead of filter name
-      base.update(options.filter);
+  getFilter(function(err, filter) {
+    if (err) {
+      return callback(err);
     }
+
+    if (filter) {
+      base.update(filter);
+    }
+
     if (options.query_params) {
       base.update(options.query_params);
     }
-  } else {
     if (options.doc_ids) {
       base.update(JSON.stringify(options.doc_ids));
     }
-  }
 
-  var id = base.digest("hex");
+    var id = base.digest("hex");
 
-  // options which gets appended to session id
-  var opts = {
-    continuous: options.continuous,
-    create_target: options.create_target
-  };
-  for (var key in opts) {
-    if (opts[key]) {
-      id += '+' + key;
+    // options which gets appended to session id
+    var opts = {
+      continuous: options.continuous,
+      create_target: options.create_target
+    };
+    for (var key in opts) {
+      if (opts[key]) {
+        id += '+' + key;
+      }
     }
-  }
 
-  callback({
-    session_id: id,
-    replication_id_version: 3
+    callback(null, {
+      session_id: id,
+      replication_id_version: 3
+    });
   });
 }
 
@@ -290,7 +313,11 @@ exports.replicate = function replicate(options, callback) {
      return callback(err);
     }
 
-    generateSessionId(options, function(sessionId) {
+    generateSessionId(options, function(err, sessionId) {
+      if (err) {
+       return callback(err);
+      }
+
       getCheckpointDoc(options, function(err, checkpointDoc) {
         if (err) {
          return callback(err);
