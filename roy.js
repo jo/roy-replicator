@@ -108,8 +108,7 @@ function getCheckpointDoc(options, callback) {
     .digest("hex");
 
   var doc = {
-    _id: '_local/' + identifier,
-    last_seq: 0
+    _id: '_local/' + identifier
   };
 
   // TODO: request in parallel
@@ -148,11 +147,13 @@ function storeCheckpoint(options, changes, checkpointDoc, callback) {
 // running indefinitely to process changes as they occur. Filtered replication
 // will specify the name of a filter function in this URL request.
 function getChanges(options, checkpointDoc, callback) {
-  // TODO: omnit since if 0
   var changesOptions = {
-    since: checkpointDoc.last_seq,
     limit: options.batch_size
   };
+
+  if (checkpointDoc.last_seq) {
+    changesOptions.since = checkpointDoc.last_seq;
+  }
 
   if (options.doc_ids) {
     changesOptions.filter = '_doc_ids';
@@ -323,7 +324,7 @@ exports.replicate = function replicate(options, callback) {
          return callback(err);
         }
 
-        if (sourceInfo.update_seq === checkpointDoc.last_seq) {
+        if (parseInt(sourceInfo.update_seq, 10) === 0 || sourceInfo.update_seq === checkpointDoc.last_seq) {
           response.ok = true;
           response.no_changes = true;
           return callback(null, response);
