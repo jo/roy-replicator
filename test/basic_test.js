@@ -26,10 +26,10 @@ exports.response = helper.test({
         test.equal(typeof response.history, 'object', 'response should have a "history" of type object');
         test.equal(response.history.length, 1, '"history" should have length of "1"');
         var result = response.history[0];
-        // test.equal(typeof result.start_time, 'string', 'result should have a "start_time" of type string');
-        // test.equal(typeof result.end_time, 'string', 'result should have a "end_time" of type string');
-        // test.equal(typeof result.start_last_seq, 'number', 'result should have a "start_last_seq" of type number');
-        // test.equal(result.start_last_seq, 0, 'start_last_seq should be "0"');
+        // TODO: test.equal(typeof result.start_time, 'string', 'result should have a "start_time" of type string');
+        // TODO: test.equal(typeof result.end_time, 'string', 'result should have a "end_time" of type string');
+        // TODO: test.equal(typeof result.start_last_seq, 'number', 'result should have a "start_last_seq" of type number');
+        // TODO: test.equal(result.start_last_seq, 0, 'start_last_seq should be "0"');
         test.equal(parseInt(result.end_last_seq, 10), 1, '"end_last_seq" should be "1"');
         test.equal(parseInt(result.recorded_seq, 10), 1, '"recorded_seq" should be "1"');
         test.equal(typeof result.missing_checked, 'number', 'result should have a "missing_checked" of type number');
