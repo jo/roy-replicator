@@ -330,6 +330,9 @@ exports.replicate = function replicate(options, callback) {
           return callback(null, response);
         }
 
+        // source_last_seq: Last processed Checkpoint. Shortcut to the
+        // recorded_seq field of the latest history object.
+        // TODO: fixme source_last_seq
         response.source_last_seq = sourceInfo.update_seq;
         response.session_id = sessionId.session_id;
         response.replication_id_version = sessionId.replication_id_version;
@@ -360,6 +363,7 @@ exports.replicate = function replicate(options, callback) {
             }
 
             // TODO: count missing revs: missing_checked and missing_found
+            // console.log(missingRevs);
 
             getRevisions(options, missingRevs, function(err, docs) {
               if (err) {
@@ -376,12 +380,13 @@ exports.replicate = function replicate(options, callback) {
               }, 0);
               result.docs_read += docsCount;
 
-              saveRevisions(options, docs, function(err) {
+              saveRevisions(options, docs, function(err, resp) {
                 if (err) {
                  return callback(err);
                 }
 
                 // TODO: count doc_write_failures
+                // console.log(resp);
 
                 result.docs_written += docsCount;
                 result.end_last_seq = changes.last_seq;
