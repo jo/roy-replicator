@@ -1,28 +1,30 @@
 'use strict';
 
-var helper = require('./test_helper.js');
+var helper = require('./helper.js');
 
 exports.cancel = helper.test({
-  // TODO: fix for roy
-  //
+  // TODO... implement continuous replication
+  // 
   // 'cancel replication': function(test) {
-  //   test.expect(1);
-
-  //   var source = this.source;
-  //   var target = this.target;
+  //   var options = this.options;
 
   //   var replication = this.roy.replicate({
-  //     source: source,
-  //     target: target,
+  //     source: options.source,
+  //     target: options.target,
   //     continuous: true
   //   });
 
-  //   target.changes({ feed: 'longpoll', since: 0 }, function(err, resp) {
+  //   helper.request.get(options.target.id() + '/_changes', { qs: { feed: 'longpoll' } }, function(err, resp) {
   //     replication.cancel(function() {
-  //       var changes = target.changes({ feed: 'longpoll', since: resp.last_seq }, function() {
+  //       var changes = helper.request.get(options.target.id() + '/_changes', {
+  //         qs: {
+  //           feed: 'longpoll',
+  //           since: resp.last_seq
+  //         }
+  //       }, function() {
   //         test.ok(false, 'no change should have been emitted');
   //       });
-  //       helper.createDocs(source, 1, function() {
+  //       helper.createDocs(options.source, 1, function() {
   //         // This setTimeout is needed to ensure no further changes come through
   //         setTimeout(function() {
   //           changes.abort();
@@ -33,6 +35,6 @@ exports.cancel = helper.test({
   //     });
   //   });
 
-  //   helper.createDocs(source, 1);
+  //   helper.createDocs(options.source, 1);
   // }
 });

@@ -1,11 +1,10 @@
 'use strict';
 
-var helper = require('./test_helper.js');
+var helper = require('./helper.js');
 
 exports.filter = helper.test({
   'basic filter': function(test) {
-    var source = this.source;
-    var target = this.target;
+    var options = this.options;
     var roy = this.roy;
 
     var ddoc = {
@@ -14,11 +13,12 @@ exports.filter = helper.test({
         even: 'function(doc) { return doc.i % 2 === 0; }'
       }
     };
-    source.insert(ddoc, function() {
-      helper.createDocs(source, 4, function() {
+
+    helper.request.post(options.source.id(), { body: ddoc }, function() {
+      helper.createDocs(options.source, 4, function() {
         roy.replicate({
-          source: source,
-          target: target,
+          source: options.source,
+          target: options.target,
           filter: 'myfilter/even'
         }, function(err, resp) {
           test.ok(!err, 'no error should have been occured');
