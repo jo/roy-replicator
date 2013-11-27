@@ -56,7 +56,7 @@ var nativeRoy = {
     return {
       cancel: function(callback) {
         req.abort();
-        // TODO: cancel it
+        callback();
       }
     };
   }

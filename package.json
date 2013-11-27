@@ -26,7 +26,7 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "jshint": "jshint -c .jshintrc lib/**/*.js roy.js test/**/*.js",
+    "jshint": "jshint -c .jshintrc lib/*.js lib/replicate/*.js test/lib/prepare/*.js lib/prepare/*.js roy.js test/lib/replicate/*.js test/lib/*.js test/*.js",
     "test": "nodeunit test/lib/prepare/*-test.js test/lib/replicate/*-test.js test/lib/*-test.js test/*-test.js",
     "build-js": "browserify roy.js > dist/roy.js",
     "uglify": "uglifyjs dist/roy.js -c --preamble \"/* roy.js \n * `date --rfc-2822 --utc` \n * (c) 2013 Johannes J. Schmidt, TF */\" > dist/roy.min.js",
