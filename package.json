@@ -1,7 +1,7 @@
 {
   "name": "roy",
   "description": "Node implementation of CouchDB replicator, based on nano. For educational purposes.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "homepage": "https://github.com/jo/roy",
   "author": {
     "name": "Johannes J. Schmidt",
@@ -26,18 +26,22 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "grunt nodeunit"
+    "jshint": "jshint -c .jshintrc lib/**/*.js roy.js test/**/*.js",
+    "test": "nodeunit test/lib/prepare/*-test.js test/lib/replicate/*-test.js test/lib/*-test.js test/*-test.js",
+    "build-js": "browserify roy.js > dist/roy.js",
+    "uglify": "uglifyjs dist/roy.js -c --preamble \"/* roy.js \n * `date --rfc-2822 --utc` \n * (c) 2013 Johannes J. Schmidt, TF */\" > dist/roy.min.js",
+    "build": "mkdir -p dist && npm run build-js && npm run uglify"
   },
   "devDependencies": {
-    "grunt-contrib-jshint": "~0.6.4",
-    "grunt-contrib-nodeunit": "~0.2.0",
-    "grunt-contrib-watch": "~0.5.3",
-    "grunt": "~0.4.1"
+    "request": "~2.27.0",
+    "roy-request": "~0.1.0",
+    "browserify": "~2.35.4",
+    "uglify-js": "~2.4.3",
+    "jshint": "~2.3.0",
+    "nodeunit": "~0.8.2"
   },
   "keywords": [],
   "dependencies": {
-    "nano": "~4.1.4",
-    "async": "~0.2.9",
-    "node-uuid": "~1.4.1"
+    "async": "~0.2.9"
   }
 }

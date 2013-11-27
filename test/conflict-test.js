@@ -1,6 +1,6 @@
 'use strict';
 
-var helper = require('./test_helper.js');
+var helper = require('./helper.js');
 
 function putAfter(db, doc, prevRev, callback){
   doc._revisions = {
@@ -10,13 +10,18 @@ function putAfter(db, doc, prevRev, callback){
       prevRev.split('-')[1]
     ]
   };
-  db.insert(doc, { new_edits: false }, callback);
+
+  helper.request.post(db.id(), {
+    qs: { 
+      new_edits: false
+    },
+    body: doc
+  }, callback);
 }
 
 exports.conflict = helper.test({
   'some conflicts': function(test) {
-    var source = this.source;
-    var target = this.target;
+    var options = this.options;
     var roy = this.roy;
 
     var doc = {
@@ -24,20 +29,21 @@ exports.conflict = helper.test({
       _rev: "1-a",
       value: "generic"
     };
-    source.insert(doc, { new_edits: false }, function() {
-      target.insert(doc, { new_edits: false }, function() {
-        putAfter(target, { _id: "foo", _rev: "2-b", value: "target" }, "1-a", function() {
-          putAfter(source, { _id: "foo", _rev: "2-c", value: "whatever" }, "1-a", function() {
-            putAfter(source, { _id: "foo", _rev: "3-c", value: "source" }, "2-c", function() {
-              source.get("foo", function(err, doc) {
+
+    helper.request.post(options.source.id(), { qs: { new_edits: false }, body: doc }, function() {
+      helper.request.post(options.target.id(), { qs: { new_edits: false }, body: doc }, function() {
+        putAfter(options.target, { _id: "foo", _rev: "2-b", value: "target" }, "1-a", function() {
+          putAfter(options.source, { _id: "foo", _rev: "2-c", value: "whatever" }, "1-a", function() {
+            putAfter(options.source, { _id: "foo", _rev: "3-c", value: "source" }, "2-c", function() {
+              helper.request.get(options.source.id() + '/foo', function(err, _, doc) {
                 test.equal(doc.value, "source", "source has correct value (get)");
-                target.get("foo", function(err, doc) {
+                helper.request.get(options.target.id() + '/foo', function(err, _, doc) {
                   test.equal(doc.value, "target", "target has correct value (get)");
-                  roy.replicate({ source: source, target: target }, function() {
-                    roy.replicate({ source: target, target: source }, function() {
-                      source.get("foo", function(err, doc) {
+                  roy.replicate(options, function() {
+                    roy.replicate(options, function() {
+                      helper.request.get(options.source.id() + '/foo', function(err, _, doc) {
                         test.equal(doc.value, "source", "source has correct value (get after replication)");
-                        target.get("foo", function(err, doc) {
+                        helper.request.get(options.target.id() + '/foo', function(err, _, doc) {
                           test.equal(doc.value, "source", "target has correct value (get after replication)");
                           test.done();
                         });
@@ -54,8 +60,7 @@ exports.conflict = helper.test({
   },
 
   'remote conflicts': function(test) {
-    var source = this.source;
-    var target = this.target;
+    var options = this.options;
     var roy = this.roy;
 
     var doc = {
@@ -63,21 +68,22 @@ exports.conflict = helper.test({
       test: "Remote 1"
     };
     var winningRev;
-    target.insert(doc, function(err, resp) {
+
+    helper.request.post(options.target.id(), { body: doc }, function(err, _, resp) {
       doc._rev = resp.rev;
-      roy.replicate({ source: target, target: source }, function() {
+      roy.replicate({ source: options.target, target: options.source }, function() {
         doc.test = "Local 1";
-        source.insert(doc, function() {
+        helper.request.post(options.source.id(), { body: doc }, function() {
           doc.test = "Remote 2";
-          target.insert(doc, function(err, resp) {
+          helper.request.post(options.target.id(), { body: doc }, function(err, _, resp) {
             doc._rev = resp.rev;
             doc.test = "Remote 3";
-            target.insert(doc, function(err, resp) {
+            helper.request.post(options.target.id(), { body: doc }, function(err, _, resp) {
               winningRev = resp.rev;
-              roy.replicate({ source: source, target: target }, function() {
-                helper.roy.replicate({ source: target, target: source }, function() {
-                  target.get('test', { revs_info: true }, function(err, targetDoc) {
-                    source.get('test', { revs_info: true }, function(err, localDoc) {
+              roy.replicate(options, function() {
+                roy.replicate({ source: options.target, target: options.source }, function() {
+                  helper.request.get(options.target.id() + '/test', function(err, _, targetDoc) {
+                    helper.request.get(options.source.id() + '/test', function(err, _, localDoc) {
                       test.equal(localDoc._rev, winningRev, "Local chose correct winning revision");
                       test.equal(targetDoc._rev, winningRev, "Remote chose winning revision");
                       test.done();
