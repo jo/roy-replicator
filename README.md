@@ -41,7 +41,7 @@ Resources
 
 Development
 -----------
-* Lint the code with `npm run jshint`.
+* Lint the code with `npm run jshint`
 * Run the tests with `npm test`
 * Browserify with `npm run build`
 
