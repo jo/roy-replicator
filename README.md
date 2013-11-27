@@ -1,12 +1,12 @@
-Roy
-===
+Roy Replicator
+==============
 Node implementation of the CouchDB replication protocol.
 
 Usage
 -----
 ```js
 var adapter = require('roy-request');
-var roy = require('roy');
+var roy = require('roy-replicator');
 
 roy.replicate({
   source: adapter('http://localhost:5984/my-source'),
@@ -23,7 +23,7 @@ var adapter = require('pouchdb');
 
 Goals
 -----
-<img src=https://raw.github.com/jo/roy/d3d01e8a6b2e62410e3285fa4e9bdf3425c79bb8/test/fixtures/roy.jpg>
+<img src=https://raw.github.com/jo/roy-replicator/d3d01e8a6b2e62410e3285fa4e9bdf3425c79bb8/test/fixtures/roy.jpg>
 
 * Gain deeper understanding of CouchDB replication
 * Good readability and testability

@@ -277,8 +277,8 @@ if (typeof module !== 'undefined' && module.exports) {
 
 },{}],3:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Prepare
  * - Verify peers
@@ -332,8 +332,8 @@ module.exports = function(options, config, state, callback) {
 
 },{"./prepare/find-common-ancestry":4,"./prepare/generate-replication-id":5,"./prepare/get-peers-information":6,"./prepare/verify-peers":7,"async":14}],4:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Find out Common Ancestry
  * - Retrieve replication logs
@@ -420,8 +420,8 @@ module.exports = function(options, config, state, callback) {
 
 },{"async":14}],5:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Generate Replication ID
  *
@@ -501,8 +501,8 @@ module.exports = function(options, config, state, callback) {
 
 },{"../../deps/md5":1}],6:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Get Peers Information
  *
@@ -544,8 +544,8 @@ module.exports = function(options, config, state, callback) {
 
 },{"async":14}],7:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Verify Peers
  *
@@ -613,8 +613,8 @@ module.exports = function(options, config, state, callback) {
 
 },{"async":14}],8:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Replicate
  * - Locate changed documents
@@ -709,8 +709,8 @@ module.exports = function(options, config, state, callback) {
 
 },{"./replicate/ensure-full-commit":9,"./replicate/fetch-changed-documents":10,"./replicate/locate-changed-documents":11,"./replicate/record-replication-checkpoint":12,"./replicate/upload-documents":13,"async":14}],9:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Ensure Full Commit
  *
@@ -746,8 +746,8 @@ module.exports = function(options, config, state, callback) {
 
 },{}],10:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Fetch Changed Documents
  *
@@ -758,8 +758,6 @@ module.exports = function(options, config, state, callback) {
 'use strict';
 
 var async = require('async');
-
-// TODO: attachments support
 
 // Fetch all document leaf revisions from source that are missed at target.
 // Use previously calculated revisions difference which defined all missed documents and their
@@ -822,16 +820,16 @@ module.exports = function(options, config, state, callback) {
     options.source.get(id, {
       revs: true,
       open_revs: JSON.stringify(state.changedDocs[id].missing),
+      attachments: true,
       latest: true
     }, next);
   }
 
-  // TODO: fetch all revisions via multipart/related request
-  // TODO: fetch attachments
+  // TODO: think about fetching revisions and attachments via multipart/related request
+  //       or fetch attachments via standalone attachments api
   // TODO: optimize by fetching  generation one documents in one go via bulk docs api.
 
-  // TODO: limit concurrent requests async.mapLimit(ids, config.max_requests, fetch, function(err, docs) {
-  async.map(ids, fetch, function(err, docs) {
+  async.mapLimit(ids, config.max_requests || 100, fetch, function(err, docs) {
     if (err) {
       return callback(err);
     }
@@ -848,8 +846,8 @@ module.exports = function(options, config, state, callback) {
 
 },{"async":14}],11:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Locate Changed Documents
  * - Listen to changes feed
@@ -969,8 +967,8 @@ module.exports = function(options, config, state, callback) {
 
 },{}],12:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Record Replication Checkpoint
  *
@@ -1063,8 +1061,8 @@ module.exports = function(options, config, state, callback) {
 
 },{"async":14}],13:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Upload Documents
  * - batch of documents
@@ -1075,8 +1073,6 @@ module.exports = function(options, config, state, callback) {
  */
 
 'use strict';
-
-// TODO: attachments support
 
 module.exports = function(options, config, state, callback) {
   if (typeof config === 'function') {
@@ -1128,7 +1124,7 @@ module.exports = function(options, config, state, callback) {
     }, next);
   }
 
-  // TODO: upload docs with attachments
+  // TODO: upload attachments separately
 
   var uploadedDocs = state.docs;
   upload(uploadedDocs, function(err) {
@@ -1138,7 +1134,7 @@ module.exports = function(options, config, state, callback) {
 
     state.uploadedDocs = state.docs;
 
-    // TODO: check if we really uploaded all those docs
+    // TODO: check if upload was successful
     state.docs_written += uploadedDocs.length;
 
     // TODO: count doc_write_failures
@@ -2163,8 +2159,8 @@ process.chdir = function (dir) {
 
 },{}],16:[function(require,module,exports){
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Node implementation of CouchDB replicator.
  * For educational purposes only.
@@ -2189,6 +2185,9 @@ module.exports = function(config) {
 
   // Batch size for changes feed processing
   config.batch_size = config.batch_size || 100;
+
+  // Maximal concurrent requests
+  config.max_requests = config.max_requests || 4;
 
   // Heartbeat for changes feed in continues mode
   config.heartbeat = config.heartbeat || 10000;

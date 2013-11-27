@@ -1,6 +1,6 @@
 /*
- * Roy
- * https://github.com/jo/roy
+ * Roy Replicator
+ * https://github.com/jo/roy-replicator
  *
  * Node implementation of CouchDB replicator.
  * For educational purposes only.
