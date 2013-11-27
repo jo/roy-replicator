@@ -1,5 +1,3 @@
-<img src=https://raw.github.com/jo/roy/master/test/fixtures/roy.jpg style=float:right>
-
 Roy
 ===
 Node implementation of the CouchDB replication protocol.
@@ -25,6 +23,8 @@ var adapter = require('pouchdb');
 
 Goals
 -----
+<img src=https://raw.github.com/jo/roy/d3d01e8a6b2e62410e3285fa4e9bdf3425c79bb8/test/fixtures/roy.jpg>
+
 * Gain deeper understanding of CouchDB replication
 * Good readability and testability
 * CouchDB replicator compatibility
