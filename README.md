@@ -45,6 +45,7 @@ Development
 * Run the tests with `npm test`
 * Browserify with `npm run build`
 * List TODOS with `npm run todos`
+* Run performance tests with `npm run perf`
 
 License
 -------
