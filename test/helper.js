@@ -115,6 +115,7 @@ exports.test = function(types, tests) {
         }
 
         object[key] = tests[name].bind({
+          type: type,
           roy: replicators[type],
           dbs: dbs,
           options: options
