@@ -30,7 +30,8 @@
     "test": "nodeunit test/lib/prepare/*-test.js test/lib/replicate/*-test.js test/lib/*-test.js test/*-test.js --reporter minimal",
     "build-js": "browserify roy.js > dist/roy.js",
     "uglify": "uglifyjs dist/roy.js -c --preamble \"/* roy.js \n * `date --rfc-2822 --utc` \n * (c) 2013 Johannes J. Schmidt, TF */\" > dist/roy.min.js",
-    "build": "mkdir -p dist && npm run build-js && npm run uglify"
+    "build": "mkdir -p dist && npm run build-js && npm run uglify",
+    "todos": "grep -r --color TODO lib test"
   },
   "devDependencies": {
     "request": "~2.27.0",

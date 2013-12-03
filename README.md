@@ -44,6 +44,7 @@ Development
 * Lint the code with `npm run jshint`
 * Run the tests with `npm test`
 * Browserify with `npm run build`
+* List TODOS with `npm run todos`
 
 License
 -------
