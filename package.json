@@ -1,7 +1,7 @@
 {
   "name": "roy-replicator",
   "description": "Node implementation of CouchDB replicator, based on nano. For educational purposes.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "homepage": "https://github.com/jo/roy-replicator",
   "author": {
     "name": "Johannes J. Schmidt",
@@ -36,11 +36,11 @@
   },
   "devDependencies": {
     "request": "~2.27.0",
-    "roy-request": "~0.1.0",
+    "roy-request": "~0.2.1",
     "browserify": "~2.35.4",
     "uglify-js": "~2.4.3",
-    "jshint": "~2.3.0",
-    "nodeunit": "~0.8.2"
+    "jshint": "~2.4.3",
+    "nodeunit": "~0.8.4"
   },
   "keywords": ["couchdb", "pouchdb", "replication"],
   "dependencies": {

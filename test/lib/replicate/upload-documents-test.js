@@ -53,7 +53,7 @@ exports.uploadDocuments = {
       }
     };
 
-    uploadDocuments(this.options, {}, { docs: [[{ ok: doc }]] }, function(err, response) {
+    uploadDocuments(this.options, {}, { docs: [ doc ] }, function(err, response) {
       test.ok(!err, 'no error should have been occured');
       test.ok(response.ok, 'response should be ok');
       test.done();

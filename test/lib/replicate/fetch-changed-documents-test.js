@@ -39,12 +39,8 @@ exports.fetchChangedDocuments = {
         test.ok(response.ok, 'response should be ok');
         test.equal(typeof response.docs, 'object', 'docs should be an object');
         test.equal(response.docs.length, 1, 'docs should have correct # of docs');
-        test.equal(typeof response.docs[0], 'object', 'docs[0] should be an object');
-        test.equal(response.docs[0].length, 1, 'docs[0] should have correct # of docs');
-        test.equal(typeof response.docs[0][0], 'object', 'docs[0][] should be an object');
-        test.ok(response.docs[0][0].ok, 'docs[0][] should be ok');
 
-        var doc = response.docs[0][0].ok;
+        var doc = response.docs[0];
         test.equal(doc._id, doc._id, 'response should include doc id');
         test.equal(doc.foo, doc.foo, 'response should include doc foo');
         test.equal(doc._rev, doc._rev, 'response should include doc rev');
@@ -72,7 +68,7 @@ exports.fetchChangedDocuments = {
           test.ok(!err, 'no error should have been occured');
           test.ok(response.ok, 'response should be ok');
 
-          var doc = response.docs[0][0].ok;
+          var doc = response.docs[0];
           test.equal(doc._revisions.start, 2, 'start should be 1');
           test.equal(typeof doc._revisions.ids, 'object', 'ids should be included');
           test.equal(doc._revisions.ids.length, 2, 'ids should have one entry');
