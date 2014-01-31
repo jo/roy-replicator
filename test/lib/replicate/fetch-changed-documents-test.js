@@ -1,14 +1,14 @@
 'use strict';
 
 var helper = require('../helper');
-var replicateDocuments = require('../../../lib/replicate/replicate-documents');
+var fetchChangedDocuments = require('../../../lib/replicate/fetch-changed-documents');
 
-exports.replicateDocuments = {
+exports.fetchChangedDocuments = {
   setUp: helper.setUp,
   tearDown: helper.tearDown,
 
   'basics': function(test) {
-    replicateDocuments(this.options, function(err, response) {
+    fetchChangedDocuments(this.options, function(err, response) {
       test.ok(!err, 'no error should have been occured');
       test.ok(response.ok, 'response should be ok');
       test.equal(typeof response.docs, 'object', 'docs should be an object');
@@ -34,7 +34,7 @@ exports.replicateDocuments = {
       var doc = this.doc;
       var changedDocs = { 'mydoc': { missing: [ doc._rev ] } };
 
-      replicateDocuments(this.options, {}, { changedDocs: changedDocs }, function(err, response) {
+      fetchChangedDocuments(this.options, {}, { changedDocs: changedDocs }, function(err, response) {
         test.ok(!err, 'no error should have been occured');
         test.ok(response.ok, 'response should be ok');
         test.equal(typeof response.docs, 'object', 'docs should be an object');
@@ -68,7 +68,7 @@ exports.replicateDocuments = {
       doc.foo = 'baz';
       helper.request.put(this.dbs[0] + '/' + doc._id, { body: doc }, function(err, resp, body) {
         doc._rev = body.rev;
-        replicateDocuments(options, {}, { changedDocs: changedDocs }, function(err, response) {
+        fetchChangedDocuments(options, {}, { changedDocs: changedDocs }, function(err, response) {
           test.ok(!err, 'no error should have been occured');
           test.ok(response.ok, 'response should be ok');
 
