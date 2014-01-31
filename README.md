@@ -1,4 +1,4 @@
-Roy Replicator
+roy-replicator [![Build Status](https://secure.travis-ci.org/jo/roy-replicator.png?branch=master)](http://travis-ci.org/jo/roy-replicator)
 ==============
 Node implementation of the CouchDB replication protocol.
 
